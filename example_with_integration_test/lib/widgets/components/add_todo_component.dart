@@ -20,12 +20,13 @@ class _AddTodoComponentState extends State<AddTodoComponent>
     with ViewUtilsMixin {
   final TextEditingController _textEditingController = TextEditingController();
   final Subject<void> disposed$ = PublishSubject<void>();
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     widget.todo.takeUntil(disposed$).listen(
-      (model) {
+          (model) {
         setState(() {
           _textEditingController.text = model.action ?? '';
         });
@@ -67,7 +68,12 @@ class _AddTodoComponentState extends State<AddTodoComponent>
               backgroundColor: Theme.of(context).primaryColor,
               focusElevation: 3,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              child: const Icon(Icons.add),
+              child: !_isLoading
+                  ? const Icon(Icons.add)
+                  : CircularProgressIndicator(
+                color: Colors.amber,
+                backgroundColor: Colors.amberAccent,
+              ),
             ),
           ],
         ),
@@ -76,14 +82,9 @@ class _AddTodoComponentState extends State<AddTodoComponent>
   }
 
   void onAdd() {
-    subscribeOnce<Todo>(
-      widget.todo,
-      onData: (todo) {
-        todo.action = _textEditingController.text;
-
-        widget.onAdded(todo);
-      },
-    );
+    setState(() {
+      _isLoading = true;
+    });
   }
 
   @override
